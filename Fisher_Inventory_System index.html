@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fisher Inventory System</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #5b3de8;
+  --primary-light: #ede9ff;
+  --primary-dark: #3d24b8;
+  --accent: #00bfa5;
+  --accent-light: #e0f7f4;
+  --danger: #ef4444;
+  --danger-light: #fef2f2;
+  --warning: #f59e0b;
+  --warning-light: #fffbeb;
+  --success: #10b981;
+  --success-light: #ecfdf5;
+  --dark: #0d0b1e;
+  --dark2: #1a1730;
+  --dark3: #252240;
+  --text: #1a1a2e;
+  --text2: #6b6b8a;
+  --border: #e4e2f0;
+  --bg: #f7f6fb;
+  --white: #ffffff;
+  --sidebar-w: 230px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', Segoe UI, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* TOPBAR */
+.topbar {
+  background: var(--dark);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 62px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.topbar-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #fff; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(91,61,232,0.4);
+}
+.topbar-name { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 700; color: #fff; letter-spacing: 0.2px; }
+.topbar-sub { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 1px; }
+.topbar-right { margin-left: auto; }
+.conn-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 13px; border-radius: 99px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 12px; color: rgba(255,255,255,0.6);
+}
+.conn-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; transition: all 0.3s; }
+.conn-dot.online { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.conn-dot.offline { background: var(--danger); }
+
+/* LAYOUT */
+.layout { display: flex; min-height: calc(100vh - 62px); }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  padding: 18px 10px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.nav-section-label {
+  font-size: 10px; font-weight: 700; color: var(--text2);
+  letter-spacing: 1.2px; text-transform: uppercase;
+  padding: 10px 12px 5px;
+}
+.nav-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 10px;
+  border: none; background: transparent;
+  cursor: pointer; font-size: 13.5px; font-weight: 500;
+  color: var(--text2); width: 100%; text-align: left;
+  transition: all 0.15s; font-family: inherit;
+}
+.nav-btn i { font-size: 17px; flex-shrink: 0; }
+.nav-btn:hover { background: var(--primary-light); color: var(--primary); }
+.nav-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(91,61,232,0.3);
+}
+
+/* MAIN */
+.main { flex: 1; padding: 28px 32px; overflow-x: hidden; min-width: 0; }
+.section { display: none; animation: fadeIn 0.2s ease; }
+.section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* PAGE HEADER */
+.page-header { margin-bottom: 26px; }
+.page-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); }
+.page-sub { font-size: 13px; color: var(--text2); margin-top: 3px; }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 26px; }
+.stat-card {
+  border-radius: 16px; padding: 20px 22px;
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute;
+  right: -15px; bottom: -15px;
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.stat-card::after {
+  content: ''; position: absolute;
+  right: 10px; bottom: 20px;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+.stat-card.c1 { background: linear-gradient(135deg, #5b3de8 0%, #7c5df5 100%); color:#fff; }
+.stat-card.c2 { background: linear-gradient(135deg, #00bfa5 0%, #00d9bd 100%); color:#fff; }
+.stat-card.c3 { background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); color:#fff; }
+.stat-card.c4 { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color:#fff; }
+.stat-icon { font-size: 24px; opacity: 0.9; }
+.stat-val { font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700; line-height: 1; }
+.stat-label { font-size: 12px; opacity: 0.8; font-weight: 500; }
+
+/* CARDS */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14.5px; font-weight: 600;
+  margin-bottom: 20px; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title i { font-size: 17px; color: var(--primary); }
+
+/* FORM */
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 18px; }
+.form-group label {
+  font-size: 11.5px; font-weight: 700; color: var(--text2);
+  display: block; margin-bottom: 7px;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+input, select {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 14px;
+  outline: none; background: var(--bg);
+  color: var(--text); font-family: inherit;
+  transition: all 0.15s;
+}
+input:focus, select:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(91,61,232,0.1);
+}
+input::placeholder { color: #b0afc0; }
+
+/* BUTTONS */
+.btn {
+  padding: 10px 20px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--white); cursor: pointer;
+  font-size: 13.5px; font-weight: 600;
+  color: var(--text); transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: inherit; white-space: nowrap;
+}
+.btn:hover { background: var(--bg); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff; border: none;
+  box-shadow: 0 4px 14px rgba(91,61,232,0.3);
+}
+.btn-primary:hover { box-shadow: 0 6px 20px rgba(91,61,232,0.45); transform: translateY(-1px); }
+.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+.btn-danger { background: var(--danger-light); color: var(--danger); border-color: transparent; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-success { background: var(--success-light); color: var(--success); border-color: transparent; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.badge-ok { background: var(--success-light); color: #059669; }
+.badge-low { background: var(--warning-light); color: #b45309; }
+.badge-out { background: var(--danger-light); color: var(--danger); }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th {
+  text-align: left; padding: 12px 18px;
+  font-size: 11px; color: var(--text2);
+  font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+td { padding: 13px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #faf9ff; }
+
+/* ALERTS */
+.alert {
+  padding: 13px 18px; border-radius: 12px; font-size: 14px;
+  margin-bottom: 14px; display: flex; align-items: flex-start;
+  gap: 10px; font-weight: 500; border: 1px solid transparent;
+}
+.alert i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.alert-success { background: var(--success-light); color: #065f46; border-color: #a7f3d0; }
+.alert-danger { background: var(--danger-light); color: #991b1b; border-color: #fecaca; }
+.alert-info { background: var(--primary-light); color: var(--primary-dark); border-color: #c4b5fd; }
+
+/* ACC TAGS */
+.acc-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--primary-light); color: var(--primary);
+  border-radius: 99px; padding: 5px 12px;
+  font-size: 12.5px; font-weight: 600; margin: 3px;
+  border: 1px solid #c4b5fd;
+}
+.acc-tag button { background: none; border: none; cursor: pointer; color: var(--primary); font-size: 15px; line-height: 1; padding: 0; opacity: 0.6; }
+.acc-tag button:hover { opacity: 1; }
+
+/* ACC PICKER */
+.acc-pick-btn {
+  padding: 6px 14px; border-radius: 99px;
+  border: 1.5px solid var(--border);
+  background: var(--white); cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--text2);
+  transition: all 0.15s; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.acc-pick-btn:hover { border-color: var(--primary); color: var(--primary); }
+.acc-pick-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* STOCK ROWS */
+.stock-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.stock-row:last-child { border-bottom: none; }
+.stock-name { font-size: 13.5px; font-weight: 500; }
+
+/* NOTIFICATIONS */
+#msg-box { position: fixed; top: 78px; right: 24px; z-index: 999; min-width: 300px; max-width: 420px; }
+
+/* EMPTY */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text2); }
+.empty-state i { font-size: 38px; opacity: 0.25; display: block; margin-bottom: 12px; }
+.empty-state p { font-size: 13.5px; }
+
+/* DASHBOARD GRID */
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+/* MOBILE */
+.mobile-tabs { display: none; overflow-x: auto; gap: 6px; padding: 12px 16px; background: var(--white); border-bottom: 1px solid var(--border); }
+.mobile-tab-btn {
+  padding: 7px 16px; border-radius: 99px;
+  border: 1.5px solid var(--border); background: var(--white);
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  color: var(--text2); white-space: nowrap; font-family: inherit;
+}
+.mobile-tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .mobile-tabs { display: flex; }
+  .main { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .dash-grid { grid-template-columns: 1fr; }
+}
+
+/* STOCK EDITOR */
+.stock-editor { display:flex; align-items:center; gap:6px; }
+.stock-editor input[type=number] {
+  width: 64px; padding: 5px 8px; border-radius: 8px;
+  border: 1.5px solid var(--border); font-size: 13px;
+  text-align: center; font-family: inherit; font-weight: 600;
+  background: var(--bg); color: var(--text);
+}
+.stock-editor input[type=number]:focus { border-color: var(--primary); background:#fff; outline:none; }
+.stock-btn {
+  width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: var(--white); cursor: pointer; font-size: 16px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2); transition: all 0.15s; font-family: inherit; flex-shrink: 0;
+}
+.stock-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.stock-save-btn {
+  padding: 5px 11px; border-radius: 8px; border: none;
+  background: var(--primary); color: #fff; cursor: pointer;
+  font-size: 12px; font-weight: 600; font-family: inherit;
+  transition: all 0.15s; white-space: nowrap;
+}
+.stock-save-btn:hover { background: var(--primary-dark); }
+
+/* ITEM NAME CELL */
+.item-name-cell strong { font-weight: 600; }
+.item-cat-tag { font-size: 11px; background: var(--bg); color: var(--text2); padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border); margin-left: 6px; font-weight: 500; }
+
+/* ORDER STATUS BANNERS */
+.order-status-banner {
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px 20px; border-radius: 14px; border: 1.5px solid transparent;
+}
+.order-status-icon {
+  width: 54px; height: 54px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+}
+.order-status-title { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; }
+.order-status-sub { font-size: 13px; color: var(--text2); margin-top: 3px; }
+
+.order-green-banner { background: #f0fdf4; border-color: #86efac; }
+.order-green-icon { background: #dcfce7; color: #16a34a; }
+.order-green-banner .order-status-title { color: #15803d; }
+
+.order-orange-banner { background: #fff7ed; border-color: #fdba74; }
+.order-orange-icon { background: #ffedd5; color: #ea580c; }
+.order-orange-banner .order-status-title { color: #c2410c; }
+
+.order-red-banner { background: #fef2f2; border-color: #fca5a5; }
+.order-red-icon { background: #fee2e2; color: var(--danger); }
+.order-red-banner .order-status-title { color: #b91c1c; }
+
+/* ACC STATUS ROWS */
+.acc-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 14px; border-radius: 10px; margin-bottom: 6px;
+  font-size: 13.5px;
+}
+.acc-row-ok { background: #f0fdf4; }
+.acc-row-warn { background: #fff7ed; }
+.acc-row-bad { background: #fef2f2; }
+.acc-row-name { font-weight: 600; }
+.acc-row-qty-ok { color: #16a34a; font-weight: 600; }
+.acc-row-qty-warn { color: #ea580c; font-weight: 600; }
+.acc-row-qty-bad { color: var(--danger); font-weight: 600; }
+
+/* ORDERS LIST */
+.order-status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.pill-complete { background: #dcfce7; color: #15803d; }
+.pill-pending { background: #ffedd5; color: #c2410c; }
+.order-filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.order-row-complete td { background: #fafffe; }
+.order-row-pending td { background: #fffdf9; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo"><i class="ti ti-antenna"></i></div>
+  <div>
+    <div class="topbar-name">Fisher Inventory</div>
+    <div class="topbar-sub">Workshop Management System</div>
+
+  </div>
+  <div class="topbar-right">
+    <div class="conn-pill">
+      <div class="conn-dot" id="conn-dot"></div>
+      <span id="conn-status">Connecting...</span>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE TABS -->
+<div class="mobile-tabs" id="mobile-tabs">
+  <button class="mobile-tab-btn active" onclick="showTab('dashboard',this,true)"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+  <button class="mobile-tab-btn" onclick="showTab('items',this,true)"><i class="ti ti-tool"></i> Products</button>
+  <button class="mobile-tab-btn" onclick="showTab('accessories',this,true)"><i class="ti ti-components"></i> Accessories</button>
+  <button class="mobile-tab-btn" onclick="showTab('orders',this,true)"><i class="ti ti-package"></i> Orders</button>
+  <button class="mobile-tab-btn" onclick="showTab('history',this,true)"><i class="ti ti-history"></i> History</button>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="nav-section-label">Navigation</div>
+    <button class="nav-btn active" onclick="showTab('dashboard',this,false)"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+    <button class="nav-btn" onclick="showTab('items',this,false)"><i class="ti ti-tool"></i> Products</button>
+    <button class="nav-btn" onclick="showTab('accessories',this,false)"><i class="ti ti-components"></i> Accessories</button>
+    <button class="nav-btn" onclick="showTab('orders',this,false)"><i class="ti ti-package"></i> Orders</button>
+    <button class="nav-btn" onclick="showTab('history',this,false)"><i class="ti ti-history"></i> History</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div id="msg-box"></div>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="section active">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Full workshop overview at a glance</div>
+      </div>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-alert-triangle"></i> Low Stock Items</div>
+          <div id="low-stock-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-components"></i> Accessories Stock</div>
+          <div id="acc-stock-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEMS -->
+    <div id="tab-items" class="section">
+      <div class="page-header">
+        <div class="page-title">Products</div>
+        <div class="page-sub">Add new items or adjust existing stock</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-circle-plus"></i> Add New Item</div>
+        <div class="form-row">
+          <div class="form-group"><label>Item Name</label><input type="text" id="item-name" placeholder="e.g. Amplifier, Speaker..."></div>
+          <div class="form-group"><label>Category</label><input type="text" id="item-cat" placeholder="e.g. Audio, Video..."></div>
+          <div class="form-group"><label>Quantity</label><input type="number" id="item-qty" placeholder="0" min="0"></div>
+        </div>
+        <div style="margin-bottom:20px">
+          <div class="form-group"><label>Accessories (per piece)</label></div>
+          <div id="selected-accs" style="margin:8px 0;min-height:28px"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px" id="acc-picker-area"></div>
+          <p id="no-acc-msg" style="font-size:13px;color:var(--text2);margin-top:8px;display:none">Add accessories in the Accessories tab first</p>
+        </div>
+        <button class="btn btn-primary" onclick="addItem()"><i class="ti ti-circle-plus"></i> Add Item</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-list"></i> All Items</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Item</th><th>Stock</th><th>Accessories / piece</th><th>Adjust Stock</th><th>Delete</th></tr></thead>
+            <tbody id="items-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCESSORIES -->
+    <div id="tab-accessories" class="section">
+      <div class="page-header">
+        <div class="page-title">Accessories</div>
+        <div class="page-sub">Manage parts and accessories</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-circle-plus"></i> Add / Restock</div>
+        <div class="form-row">
+          <div class="form-group"><label>Accessory Name</label><input type="text" id="acc-name" placeholder="e.g. Capacitor 100uf, Wire 1m..."></div>
+          <div class="form-group"><label>Quantity</label><input type="number" id="acc-qty" placeholder="0" min="0"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addAccessory()"><i class="ti ti-circle-plus"></i> Add / Restock</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-list"></i> All Accessories</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Accessory</th><th>Stock</th><th>Status</th><th>Adjust Stock</th><th>Delete</th></tr></thead>
+            <tbody id="acc-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div id="tab-orders" class="section">
+      <div class="page-header">
+        <div class="page-title">Orders</div>
+        <div class="page-sub">Add orders — green: in stock, orange: partial stock, red: out of stock</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-package"></i> Add Order</div>
+        <div class="form-row">
+          <div class="form-group"><label>Select Item</label><select id="order-item" onchange="updatePreview()"><option value="">-- Select Item --</option></select></div>
+          <div class="form-group"><label>Quantity</label><input type="number" id="order-qty" placeholder="0" min="1" oninput="updatePreview()"></div>
+          <div class="form-group"><label>Customer Name</label><input type="text" id="order-customer" placeholder="Customer name..."></div>
+        </div>
+
+        <!-- 3-STATE STATUS BOX -->
+        <div id="order-status-box" style="display:none;margin-bottom:18px">
+
+          <!-- GREEN: Poora stock available -->
+          <div id="order-available-card" style="display:none">
+            <div class="order-status-banner order-green-banner">
+              <div class="order-status-icon order-green-icon"><i class="ti ti-circle-check"></i></div>
+              <div>
+                <div class="order-status-title">✅ Stock Available!</div>
+                <div id="order-available-text" class="order-status-sub"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ORANGE: Partial / banana padega -->
+          <div id="order-partial-card" style="display:none">
+            <div class="order-status-banner order-orange-banner">
+              <div class="order-status-icon order-orange-icon"><i class="ti ti-tool"></i></div>
+              <div>
+                <div class="order-status-title">🔧 Need to Produce — Partial Stock</div>
+                <div id="order-partial-text" class="order-status-sub"></div>
+              </div>
+            </div>
+            <div id="acc-status-list-partial" style="margin-top:14px"></div>
+          </div>
+
+          <!-- RED: Out of stock -->
+          <div id="order-unavailable-card" style="display:none">
+            <div class="order-status-banner order-red-banner">
+              <div class="order-status-icon order-red-icon"><i class="ti ti-alert-circle"></i></div>
+              <div>
+                <div class="order-status-title">❌ Out of Stock!</div>
+                <div id="order-unavailable-text" class="order-status-sub"></div>
+              </div>
+            </div>
+            <div id="acc-status-list" style="margin-top:14px"></div>
+          </div>
+
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary" id="order-submit-btn" onclick="processOrder()" style="display:none"><i class="ti ti-check"></i> Complete Order</button>
+          <button class="btn" id="order-pending-btn" onclick="processOrderPending()" style="display:none;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;box-shadow:0 4px 14px rgba(249,115,22,0.35)"><i class="ti ti-clock"></i> Save as Pending</button>
+        </div>
+      </div>
+
+      <!-- ORDERS LIST -->
+      <div class="card" style="margin-top:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+          <div class="card-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><i class="ti ti-list-details"></i> All Orders</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm order-filter-btn active" onclick="filterOrders('all',this)">All</button>
+            <button class="btn btn-sm order-filter-btn" onclick="filterOrders('pending',this)" style="color:#c2410c;background:#fff7ed;border-color:#fed7aa">Pending</button>
+            <button class="btn btn-sm order-filter-btn" onclick="filterOrders('complete',this)" style="color:#065f46;background:#ecfdf5;border-color:#a7f3d0">Complete</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Customer</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="orders-list-table"></tbody>
+          </table>
+        </div>
+        <div id="orders-empty" class="empty-state" style="display:none"><i class="ti ti-package"></i><p>No orders yet</p></div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="tab-history" class="section">
+      <div class="page-header">
+        <div class="page-title">History</div>
+        <div class="page-sub">Complete record of all transactions</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:8px"><i class="ti ti-history" style="color:var(--primary)"></i> Transaction Log</div>
+          <button class="btn btn-danger btn-sm" onclick="clearHistory()"><i class="ti ti-trash"></i> Clear All</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date/Time</th><th>Type</th><th>Item</th><th>Qty</th><th>Details</th></tr></thead>
+            <tbody id="history-table"></tbody>
+          </table>
+        </div>
+        <div id="history-empty" class="empty-state" style="display:none"><i class="ti ti-inbox"></i><p>No transactions yet</p></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+const SUPABASE_URL = 'https://pjwvukchvqjellpveolh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqd3Z1a2NodnFqZWxscHZlb2xoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNDk3MDMsImV4cCI6MjA5NDkyNTcwM30.uCoKVUEUs34pvC29XfpiUgnhUMv3hgIvgNGQbBxTVFM';
+const H = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY,
+  'Prefer': 'return=representation'
+};
+
+async function api(method, table, body, query = '') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+    method, headers: H, body: body ? JSON.stringify(body) : undefined
+  });
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  const t = await r.text(); return t ? JSON.parse(t) : [];
+}
+
+let items = [], accessories = [], orders = [], selectedAccs = {};
+let orderFilter = 'all';
+
+async function loadAll() {
+  try {
+    [items, accessories, orders] = await Promise.all([
+      api('GET', 'items', '', '?order=id.asc'),
+      api('GET', 'accessories', '', '?order=id.asc'),
+      api('GET', 'orders', '', '?order=id.desc&limit=200')
+    ]);
+    setOnline(true);
+    renderAll();
+  } catch(e) {
+    setOnline(false);
+    showMsg('Connection failed — check internet', 'danger');
+  }
+}
+
+function setOnline(on) {
+  document.getElementById('conn-dot').className = 'conn-dot ' + (on ? 'online' : 'offline');
+  document.getElementById('conn-status').textContent = on ? 'Online' : 'Offline';
+}
+
+function showMsg(msg, type = 'success') {
+  const b = document.getElementById('msg-box');
+  const icon = type === 'success' ? 'ti-circle-check' : type === 'danger' ? 'ti-alert-circle' : 'ti-info-circle';
+  b.innerHTML = `<div class="alert alert-${type}"><i class="ti ${icon}"></i><span>${msg}</span></div>`;
+  setTimeout(() => b.innerHTML = '', 3500);
+}
+
+function showTab(t, btn, mobile) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  if (mobile) {
+    document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
+  } else {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  }
+  btn.classList.add('active');
+  if (t === 'history') loadHistory();
+  else loadAll();
+}
+
+async function addItem() {
+  const name = document.getElementById('item-name').value.trim();
+  const cat = document.getElementById('item-cat').value.trim() || 'General';
+  const qty = parseInt(document.getElementById('item-qty').value) || 0;
+  if (!name) return showMsg('Please enter item name', 'danger');
+  try {
+    const ex = items.find(i => i.name.toLowerCase() === name.toLowerCase());
+    if (ex) {
+      await api('PATCH', 'items', {qty: ex.qty + qty}, `?id=eq.${ex.id}`);
+      await api('POST', 'history', {type: 'Restock', item: name, qty, details: 'Item restocked'});
+      showMsg(`${name}: ${qty} pieces added!`);
+    } else {
+      await api('POST', 'items', {name, category: cat, qty, accs: selectedAccs});
+      await api('POST', 'history', {type: 'New Item', item: name, qty, details: cat});
+      showMsg(`${name} added successfully!`);
+    }
+    selectedAccs = {};
+    ['item-name', 'item-cat', 'item-qty'].forEach(id => document.getElementById(id).value = '');
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+async function addAccessory() {
+  const name = document.getElementById('acc-name').value.trim();
+  const qty = parseInt(document.getElementById('acc-qty').value) || 0;
+  if (!name) return showMsg('Please enter accessory name', 'danger');
+  if (qty <= 0) return showMsg('Quantity must be greater than 0', 'danger');
+  try {
+    const ex = accessories.find(a => a.name.toLowerCase() === name.toLowerCase());
+    if (ex) {
+      await api('PATCH', 'accessories', {qty: ex.qty + qty}, `?id=eq.${ex.id}`);
+      await api('POST', 'history', {type: 'Acc Restock', item: name, qty, details: 'Restocked'});
+      showMsg(`${name}: ${qty} more added!`);
+    } else {
+      await api('POST', 'accessories', {name, qty});
+      await api('POST', 'history', {type: 'New Accessory', item: name, qty, details: ''});
+      showMsg(`${name} added!`);
+    }
+    ['acc-name', 'acc-qty'].forEach(id => document.getElementById(id).value = '');
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+async function processOrder() {
+  const itemId = parseInt(document.getElementById('order-item').value);
+  const qty = parseInt(document.getElementById('order-qty').value) || 0;
+  const customer = document.getElementById('order-customer').value.trim() || 'N/A';
+  if (!itemId) return showMsg('Please select an item', 'danger');
+  if (qty <= 0) return showMsg('Please enter quantity', 'danger');
+  const item = items.find(i => i.id === itemId);
+  if (!item) return showMsg('Item not found', 'danger');
+  if (item.qty < qty) return showMsg(`Only ${item.qty} pieces available`, 'danger');
+  const ins = [];
+  for (const [n, p] of Object.entries(item.accs || {})) {
+    const needed = p * qty;
+    const acc = accessories.find(a => a.name === n);
+    if (!acc || acc.qty < needed) ins.push(`${n}: need ${needed}, have ${acc ? acc.qty : 0}`);
+  }
+  if (ins.length) return showMsg('Accessories insufficient! ' + ins.join(' | '), 'danger');
+  try {
+    await api('PATCH', 'items', {qty: item.qty - qty}, `?id=eq.${item.id}`);
+    const log = [];
+    for (const [n, p] of Object.entries(item.accs || {})) {
+      const needed = p * qty;
+      const acc = accessories.find(a => a.name === n);
+      await api('PATCH', 'accessories', {qty: acc.qty - needed}, `?id=eq.${acc.id}`);
+      log.push(`${n} -${needed}`);
+    }
+    await api('POST', 'history', {type: 'Order', item: item.name, qty, details: `Customer: ${customer} | ${log.join(', ') || 'No accessories'}`});
+    await api('POST', 'orders', {item_name: item.name, item_id: item.id, qty_ordered: qty, qty_ready: qty, qty_pending: 0, customer, status: 'complete'});
+    showMsg(`✅ Order complete! ${qty}x ${item.name} dispatched.`);
+    clearOrderForm();
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+async function processOrderPending() {
+  const itemId = parseInt(document.getElementById('order-item').value);
+  const qty = parseInt(document.getElementById('order-qty').value) || 0;
+  const customer = document.getElementById('order-customer').value.trim() || 'N/A';
+  if (!itemId) return showMsg('Please select an item', 'danger');
+  if (qty <= 0) return showMsg('Please enter quantity', 'danger');
+  const item = items.find(i => i.id === itemId);
+  if (!item) return showMsg('Item not found', 'danger');
+  try {
+    const ready = Math.min(item.qty, qty);
+    const pending = qty - ready;
+    await api('POST', 'orders', {item_name: item.name, item_id: item.id, qty_ordered: qty, qty_ready: ready, qty_pending: pending, customer, status: 'pending'});
+    await api('POST', 'history', {type: 'Order', item: item.name, qty, details: `Pending | Customer: ${customer} | Ready: ${ready}, Pending: ${pending}`});
+    showMsg(`🔧 Order saved as pending! ${qty}x ${item.name} for ${customer}`);
+    clearOrderForm();
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+async function completeOrder(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+  const item = items.find(i => i.id === order.item_id);
+  if (!item) return showMsg('Item not found', 'danger');
+  if (item.qty < order.qty_ordered) return showMsg(`Still insufficient stock — only ${item.qty} available`, 'danger');
+  try {
+    await api('PATCH', 'items', {qty: item.qty - order.qty_ordered}, `?id=eq.${item.id}`);
+    for (const [n, p] of Object.entries(item.accs || {})) {
+      const needed = p * order.qty_ordered;
+      const acc = accessories.find(a => a.name === n);
+      if (acc) await api('PATCH', 'accessories', {qty: Math.max(0, acc.qty - needed)}, `?id=eq.${acc.id}`);
+    }
+    await api('PATCH', 'orders', {status: 'complete', qty_ready: order.qty_ordered, qty_pending: 0}, `?id=eq.${orderId}`);
+    await api('POST', 'history', {type: 'Order', item: order.item_name, qty: order.qty_ordered, details: `Completed | Customer: ${order.customer}`});
+    showMsg(`✅ Order complete! ${order.qty_ordered}x ${order.item_name} — ${order.customer}`);
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+async function deleteOrder(orderId) {
+  if (!confirm('Delete this order?')) return;
+  try {
+    await api('DELETE', 'orders', '', `?id=eq.${orderId}`);
+    showMsg('Order deleted');
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+function clearOrderForm() {
+  ['order-qty', 'order-customer'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('order-item').value = '';
+  document.getElementById('order-status-box').style.display = 'none';
+  ['order-available-card','order-partial-card','order-unavailable-card'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('order-submit-btn').style.display = 'none';
+  document.getElementById('order-pending-btn').style.display = 'none';
+}
+
+function filterOrders(f, btn) {
+  orderFilter = f;
+  document.querySelectorAll('.order-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrdersList();
+}
+
+function renderOrdersList() {
+  const t = document.getElementById('orders-list-table');
+  const empty = document.getElementById('orders-empty');
+  if (!t) return;
+  let filtered = orders;
+  if (orderFilter === 'pending') filtered = orders.filter(o => o.status === 'pending');
+  else if (orderFilter === 'complete') filtered = orders.filter(o => o.status === 'complete');
+  if (!filtered.length) {
+    t.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  t.innerHTML = filtered.map(o => {
+    const isComplete = o.status === 'complete';
+    const pillCls = isComplete ? 'pill-complete' : 'pill-pending';
+    const pillIcon = isComplete ? '✅' : '🔧';
+    const pillTxt = isComplete ? 'Complete' : 'Pending';
+    const dt = o.created_at ? new Date(o.created_at).toLocaleDateString('en-PK') : '';
+    const rowCls = isComplete ? 'order-row-complete' : 'order-row-pending';
+    const actionBtns = !isComplete
+      ? `<button class="btn btn-success btn-sm" onclick="completeOrder(${o.id})" title="Mark as complete"><i class="ti ti-check"></i> Done</button> `
+      : '';
+    return `<tr class="${rowCls}">
+      <td style="font-size:12px;color:var(--text2)">#${o.id}</td>
+      <td><strong>${o.customer || 'N/A'}</strong></td>
+      <td>${o.item_name || ''}</td>
+      <td style="font-weight:600">${o.qty_ordered}</td>
+      <td><span class="order-status-pill ${pillCls}">${pillIcon} ${pillTxt}</span></td>
+      <td style="font-size:12px;color:var(--text2)">${dt}</td>
+      <td style="white-space:nowrap">
+        ${actionBtns}<button class="btn btn-danger btn-sm" onclick="deleteOrder(${o.id})"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updatePreview() {
+  const itemId = parseInt(document.getElementById('order-item').value);
+  const qty = parseInt(document.getElementById('order-qty').value) || 0;
+  const statusBox = document.getElementById('order-status-box');
+  const availCard = document.getElementById('order-available-card');
+  const partialCard = document.getElementById('order-partial-card');
+  const unavailCard = document.getElementById('order-unavailable-card');
+  const submitBtn = document.getElementById('order-submit-btn');
+  const pendingBtn = document.getElementById('order-pending-btn');
+
+  // hide all
+  [statusBox, availCard, partialCard, unavailCard].forEach(el => el.style.display = 'none');
+  submitBtn.style.display = 'none';
+  pendingBtn.style.display = 'none';
+
+  if (!itemId || qty <= 0) return;
+
+  const item = items.find(i => i.id === itemId);
+  if (!item) return;
+
+  statusBox.style.display = 'block';
+
+  const itemOk = item.qty >= qty;
+
+  const accResults = Object.entries(item.accs || {}).map(([n, p]) => {
+    const needed = p * qty;
+    const acc = accessories.find(a => a.name === n);
+    const have = acc ? acc.qty : 0;
+    const ok = have >= needed;
+    const partial = !ok && have > 0;
+    return { name: n, needed, have, ok, partial };
+  });
+
+  const allOk = itemOk && accResults.every(a => a.ok);
+  const totallyOut = !itemOk && item.qty === 0;
+  const somePartial = !allOk && (item.qty > 0 || accResults.some(a => a.partial || a.ok));
+
+  function buildAccRows(listId) {
+    const el = document.getElementById(listId);
+    if (!el || !accResults.length) return;
+    el.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--text2);letter-spacing:0.6px;text-transform:uppercase;margin-bottom:8px">Accessories Status</div>' +
+      accResults.map(a => {
+        const cls = a.ok ? 'acc-row-ok' : a.partial ? 'acc-row-warn' : 'acc-row-bad';
+        const qCls = a.ok ? 'acc-row-qty-ok' : a.partial ? 'acc-row-qty-warn' : 'acc-row-qty-bad';
+        const icon = a.ok ? '✅' : a.partial ? '⚠️' : '❌';
+        return `<div class="acc-row ${cls}">
+          <span class="acc-row-name">${icon} ${a.name}</span>
+          <span class="${qCls}">${a.have} available / ${a.needed} needed</span>
+        </div>`;
+      }).join('');
+  }
+
+  if (allOk) {
+    // GREEN
+    availCard.style.display = 'block';
+    document.getElementById('order-available-text').innerHTML =
+      `<strong>${item.name}</strong> — ${item.qty} available, you can dispatch ${qty}` +
+      (accResults.length ? `<br>All accessories available ✅` : '');
+    submitBtn.style.display = 'inline-flex';
+  } else if (somePartial && !totallyOut) {
+    // ORANGE — kuch hai, banana padega
+    partialCard.style.display = 'block';
+    let txt = `<strong>${item.name}</strong> — `;
+    if (!itemOk) txt += `only <strong>${item.qty}</strong> in stock, need <strong>${qty}</strong>`;
+    else txt += `item stock is fine (${item.qty} available)`;
+    document.getElementById('order-partial-text').innerHTML = txt;
+    buildAccRows('acc-status-list-partial');
+    pendingBtn.style.display = 'inline-flex';
+  } else {
+    // RED — out of stock
+    unavailCard.style.display = 'block';
+    let txt2 = `<strong>${item.name}</strong> — `;
+    if (item.qty === 0) txt2 += `completely out of stock`;
+    else txt2 += `only <strong>${item.qty}</strong> pieces available, need <strong>${qty}</strong>`;
+    document.getElementById('order-unavailable-text').innerHTML = txt2;
+    buildAccRows('acc-status-list');
+    pendingBtn.style.display = 'inline-flex';
+  }
+}
+
+async function deleteItem(id) {
+  const item = items.find(i => i.id === id);
+  if (!confirm(`Delete "${item.name}"?`)) return;
+  try {
+    await api('DELETE', 'items', '', `?id=eq.${id}`);
+    showMsg(`${item.name} deleted`);
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+async function deleteAcc(id) {
+  const acc = accessories.find(a => a.id === id);
+  if (!confirm(`Delete "${acc.name}"?`)) return;
+  try {
+    await api('DELETE', 'accessories', '', `?id=eq.${id}`);
+    showMsg(`${acc.name} deleted`);
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+async function clearHistory() {
+  if (!confirm('Delete all history?')) return;
+  try {
+    await api('DELETE', 'history', '', '?id=gt.0');
+    showMsg('History cleared');
+    renderHistory([]);
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+function toggleAccPicker(name) {
+  if (selectedAccs[name]) { delete selectedAccs[name]; }
+  else {
+    const n = parseInt(prompt(`How many "${name}" needed per piece?`, '1')) || 1;
+    selectedAccs[name] = n;
+  }
+  renderAccPicker();
+}
+
+function renderAccPicker() {
+  const sa = document.getElementById('selected-accs');
+  const ap = document.getElementById('acc-picker-area');
+  const nm = document.getElementById('no-acc-msg');
+  if (!sa || !ap) return;
+  if (accessories.length === 0) {
+    ap.innerHTML = '';
+    if (nm) nm.style.display = 'block';
+  } else {
+    if (nm) nm.style.display = 'none';
+    ap.innerHTML = accessories.map(a =>
+      `<button class="acc-pick-btn${selectedAccs[a.name] ? ' selected' : ''}" onclick="toggleAccPicker('${a.name}')">
+        <i class="ti ti-plus" style="font-size:12px"></i> ${a.name} (${a.qty})
+      </button>`
+    ).join('');
+  }
+  sa.innerHTML = Object.entries(selectedAccs).map(([n, q]) =>
+    `<span class="acc-tag"><i class="ti ti-components" style="font-size:12px"></i>${n} x${q}<button onclick="delete selectedAccs['${n}'];renderAccPicker()">×</button></span>`
+  ).join('');
+}
+
+function renderAll() {
+  renderStats();
+  renderItemsTable();
+  renderAccTable();
+  renderOrderSelect();
+  renderAccPicker();
+  renderLowStock();
+  renderAccStock();
+  renderOrdersList();
+}
+
+function renderStats() {
+  const g = document.getElementById('stats-grid');
+  if (!g) return;
+  const total = items.reduce((s, i) => s + i.qty, 0);
+  const accTotal = accessories.reduce((s, a) => s + a.qty, 0);
+  const low = items.filter(i => i.qty <= 5).length;
+  const pendingOrders = orders.filter(o => o.status === 'pending').length;
+  g.innerHTML = `
+    <div class="stat-card c1">
+      <i class="ti ti-tool stat-icon"></i>
+      <div class="stat-val">${items.length}</div>
+      <div class="stat-label">Item Types</div>
+    </div>
+    <div class="stat-card c2">
+      <i class="ti ti-stack-2 stat-icon"></i>
+      <div class="stat-val">${total}</div>
+      <div class="stat-label">Total Stock</div>
+    </div>
+    <div class="stat-card c3">
+      <i class="ti ti-clock stat-icon"></i>
+      <div class="stat-val">${pendingOrders}</div>
+      <div class="stat-label">Pending Orders</div>
+    </div>
+    <div class="stat-card c4">
+      <i class="ti ti-alert-triangle stat-icon"></i>
+      <div class="stat-val">${low}</div>
+      <div class="stat-label">Low Stock</div>
+    </div>`;
+}
+
+function renderItemsTable() {
+  const t = document.getElementById('items-table');
+  if (!t) return;
+  if (!items.length) {
+    t.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="ti ti-tool"></i><p>No items yet — add one above</p></div></td></tr>';
+    return;
+  }
+  t.innerHTML = items.map(i => {
+    const b = i.qty === 0 ? 'badge-out' : i.qty <= 5 ? 'badge-low' : 'badge-ok';
+    const s = i.qty === 0 ? 'Out of Stock' : i.qty <= 5 ? 'Low Stock' : 'Available';
+    const ac = Object.entries(i.accs || {}).map(([n, q]) => `${n} x${q}`).join(', ') || '—';
+    const catTag = i.category ? `<span class="item-cat-tag">${i.category}</span>` : '';
+    return `<tr>
+      <td class="item-name-cell"><strong>${i.name}</strong>${catTag}</td>
+      <td><span class="badge ${b}">${i.qty} — ${s}</span></td>
+      <td style="font-size:13px;color:var(--text2)">${ac}</td>
+      <td>
+        <div class="stock-editor">
+          <button class="stock-btn" onclick="stepStock('item',${i.id},-1)">−</button>
+          <input type="number" id="item-stock-${i.id}" value="${i.qty}" min="0" onkeydown="if(event.key==='Enter')saveStock('item',${i.id})">
+          <button class="stock-btn" onclick="stepStock('item',${i.id},1)">+</button>
+          <button class="stock-save-btn" onclick="saveStock('item',${i.id})"><i class="ti ti-check" style="font-size:11px"></i> Save</button>
+        </div>
+      </td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteItem(${i.id})"><i class="ti ti-trash"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAccTable() {
+  const t = document.getElementById('acc-table');
+  if (!t) return;
+  if (!accessories.length) {
+    t.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="ti ti-components"></i><p>No accessories yet</p></div></td></tr>';
+    return;
+  }
+  t.innerHTML = accessories.map(a => {
+    const b = a.qty === 0 ? 'badge-out' : a.qty <= 10 ? 'badge-low' : 'badge-ok';
+    const s = a.qty === 0 ? 'Out of Stock' : a.qty <= 10 ? 'Low' : 'OK';
+    return `<tr>
+      <td><strong>${a.name}</strong></td>
+      <td>${a.qty}</td>
+      <td><span class="badge ${b}">${s}</span></td>
+      <td>
+        <div class="stock-editor">
+          <button class="stock-btn" onclick="stepStock('acc',${a.id},-1)">−</button>
+          <input type="number" id="acc-stock-${a.id}" value="${a.qty}" min="0" onkeydown="if(event.key==='Enter')saveStock('acc',${a.id})">
+          <button class="stock-btn" onclick="stepStock('acc',${a.id},1)">+</button>
+          <button class="stock-save-btn" onclick="saveStock('acc',${a.id})"><i class="ti ti-check" style="font-size:11px"></i> Save</button>
+        </div>
+      </td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteAcc(${a.id})"><i class="ti ti-trash"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderOrderSelect() {
+  const s = document.getElementById('order-item');
+  if (!s) return;
+  const cur = s.value;
+  s.innerHTML = '<option value="">-- Select Item --</option>' +
+    items.map(i => `<option value="${i.id}">${i.name} (${i.qty} available)</option>`).join('');
+  s.value = cur;
+}
+
+function stepStock(type, id, delta) {
+  const inp = document.getElementById(`${type}-stock-${id}`);
+  if (!inp) return;
+  const val = Math.max(0, (parseInt(inp.value) || 0) + delta);
+  inp.value = val;
+  inp.focus();
+}
+
+async function saveStock(type, id) {
+  const inp = document.getElementById(`${type}-stock-${id}`);
+  if (!inp) return;
+  const newQty = Math.max(0, parseInt(inp.value) || 0);
+  try {
+    if (type === 'item') {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      const diff = newQty - item.qty;
+      await api('PATCH', 'items', {qty: newQty}, `?id=eq.${id}`);
+      const histType = diff >= 0 ? 'Stock In' : 'Stock Out';
+      await api('POST', 'history', {type: histType, item: item.name, qty: Math.abs(diff), details: `Manual adjust: ${item.qty} → ${newQty}`});
+      showMsg(`${item.name}: stock updated to ${newQty}`);
+    } else {
+      const acc = accessories.find(a => a.id === id);
+      if (!acc) return;
+      const diff = newQty - acc.qty;
+      await api('PATCH', 'accessories', {qty: newQty}, `?id=eq.${id}`);
+      const histType = diff >= 0 ? 'Stock In' : 'Stock Out';
+      await api('POST', 'history', {type: histType, item: acc.name, qty: Math.abs(diff), details: `Manual adjust: ${acc.qty} → ${newQty}`});
+      showMsg(`${acc.name}: stock updated to ${newQty}`);
+    }
+    await loadAll();
+  } catch(e) { showMsg('Error: ' + e.message, 'danger'); }
+}
+
+async function loadHistory() {
+  try {
+    const h = await api('GET', 'history', '', '?order=id.desc&limit=100');
+    renderHistory(h);
+  } catch(e) {}
+}
+
+function renderHistory(hist) {
+  const t = document.getElementById('history-table');
+  const e = document.getElementById('history-empty');
+  if (!t) return;
+  if (!hist || !hist.length) { t.innerHTML = ''; if (e) e.style.display = 'block'; return; }
+  if (e) e.style.display = 'none';
+  const typeStyle = {
+    'Order': 'badge-out', 'New Item': 'badge-ok', 'Restock': 'badge-low',
+    'New Accessory': 'badge-ok', 'Acc Restock': 'badge-low'
+  };
+  t.innerHTML = hist.map(h => {
+    const cls = typeStyle[h.type] || 'badge-low';
+    const dt = h.created_at ? new Date(h.created_at).toLocaleString('en-PK') : '';
+    return `<tr>
+      <td style="font-size:12px;color:var(--text2);white-space:nowrap">${dt}</td>
+      <td><span class="badge ${cls}">${h.type || ''}</span></td>
+      <td><strong>${h.item || ''}</strong></td>
+      <td>${h.qty || ''}</td>
+      <td style="font-size:12px;color:var(--text2)">${h.details || ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderLowStock() {
+  const el = document.getElementById('low-stock-list');
+  if (!el) return;
+  const low = items.filter(i => i.qty <= 5);
+  if (!low.length) {
+    el.innerHTML = '<div style="color:var(--text2);font-size:13.5px;padding:8px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check" style="color:var(--success)"></i>All good!</div>';
+    return;
+  }
+  el.innerHTML = low.map(i =>
+    `<div class="stock-row">
+      <span class="stock-name">${i.name}</span>
+      <span class="badge ${i.qty === 0 ? 'badge-out' : 'badge-low'}">${i.qty} left</span>
+    </div>`
+  ).join('');
+}
+
+function renderAccStock() {
+  const el = document.getElementById('acc-stock-list');
+  if (!el) return;
+  if (!accessories.length) {
+    el.innerHTML = '<div style="color:var(--text2);font-size:13.5px;padding:8px 0">No accessories added</div>';
+    return;
+  }
+  el.innerHTML = accessories.map(a =>
+    `<div class="stock-row">
+      <span class="stock-name">${a.name}</span>
+      <span class="badge ${a.qty === 0 ? 'badge-out' : a.qty <= 10 ? 'badge-low' : 'badge-ok'}">${a.qty}</span>
+    </div>`
+  ).join('');
+}
+
+loadAll();
+</script>
+</body>
+</html>
